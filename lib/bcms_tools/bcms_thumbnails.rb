@@ -91,7 +91,8 @@ module BcmsTools
 					# generate thumbnail at size to fit container
 					throw RuntimeError.new("Failed reading image #{pathImage}") unless objThumb = Paperclip::Thumbnail.new(File.new(pathImage), "#{aDestWidth}x#{aDestHeight}")
 					throw RuntimeError.new("Failed making thumbnail #{pathImage}") unless foThumb = objThumb.make
-					FileUtils.cp(foThumb.path,pathThumb,:force => true)
+					FileUtils.cp(foThumb.path,pathThumb,:preserve => true)
+					FileUtils.chmod(0644,pathThumb)
 					FileUtils.rm(foThumb.path)
 					#POpen4::shell_out("sudo -u tca chgrp www-data	#{pathThumb}; sudo -u tca chmod 644 #{pathThumb}")
 				end
@@ -115,7 +116,8 @@ module BcmsTools
 					# generate thumbnail at size to fit container
 					throw RuntimeError.new("Failed reading image #{pathImage}") unless objThumb = Paperclip::Thumbnail.new(File.new(pathImage), "#{aWidth}x#{aHeight}#")
 					throw RuntimeError.new("Failed making thumbnail #{pathImage}") unless foThumb = objThumb.make
-					FileUtils.cp(foThumb.path,pathThumb,:force => true)
+					FileUtils.cp(foThumb.path,pathThumb)
+					FileUtils.chmod(0644,pathThumb)
 					FileUtils.rm(foThumb.path)
 				end
 				return File.join(APP_CONFIG[:thumbs_url],nameThumb)
@@ -142,7 +144,8 @@ module BcmsTools
 				if !File.exists?(pathThumb)
 					throw RuntimeError.new("Failed reading image #{pathImage}") unless objThumb = Paperclip::Thumbnail.new(File.new(pathImage), "#{aDestWidth}x#{aDestHeight}")
 					throw RuntimeError.new("Failed making thumbnail #{pathImage}") unless foThumb = objThumb.make
-					FileUtils.cp(foThumb.path,pathThumb,:force => true)
+					FileUtils.cp(foThumb.path,pathThumb)
+					FileUtils.chmod(0644,pathThumb)
 					FileUtils.rm(foThumb.path)
 				end
 				
