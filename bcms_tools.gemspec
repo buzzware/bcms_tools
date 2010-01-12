@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
      "bcms_tools.gemspec",
      "lib/bcms_tools.rb",
      "lib/bcms_tools/bcms_thumbnails.rb",
+     "lib/bcms_tools/bcms_thumbnails.rb",
      "lib/bcms_tools_dev.rb",
      "rails/init.rb",
      "test/bcms_tools_test.rb",
