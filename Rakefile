@@ -10,9 +10,9 @@ begin
     gem.email = "contact@buzzware.com.au"
     gem.homepage = "http://github.com/buzzware/bcms_tools"
     gem.authors = ["buzzware"]
-		gem.add_dependency "buzzcore"
+		gem.add_dependency "buzzcore", ">= 0.3.2"
 		gem.add_dependency "browsercms"
-    gem.add_development_dependency "thoughtbot-shoulda"
+    gem.add_development_dependency "shoulda"
 		gem.files.include %w(
 			lib/bcms_tools/*
 		)
