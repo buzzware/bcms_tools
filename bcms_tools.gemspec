@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["buzzware"]
-  s.date = %q{2010-01-19}
+  s.date = %q{2010-02-12}
   s.description = %q{Tools for BrowserCms.}
   s.email = %q{contact@buzzware.com.au}
   s.extra_rdoc_files = [
@@ -24,9 +24,13 @@ Gem::Specification.new do |s|
      "Rakefile",
      "VERSION",
      "bcms_tools.gemspec",
+     "bcms_tools.vpj",
+     "bcms_tools.vpw",
      "lib/bcms_tools.rb",
      "lib/bcms_tools/bcms_thumbnails.rb",
      "lib/bcms_tools/bcms_thumbnails.rb",
+     "lib/bcms_tools/form_helpers.rb",
+     "lib/bcms_tools/form_helpers.rb",
      "lib/bcms_tools/view_helpers.rb",
      "lib/bcms_tools/view_helpers.rb",
      "lib/bcms_tools_dev.rb",

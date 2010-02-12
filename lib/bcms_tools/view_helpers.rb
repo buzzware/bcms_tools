@@ -74,7 +74,7 @@ module ActionView
 			begin
 				tree_nodes << level_nodes
 				ids = level_nodes.map {|n| n.id}
-				level_nodes = Category.all({:conditions => ['parent_id in (?)',ids.join(',')]})
+				level_nodes = Category.find_all_by_parent_id(ids)  #Category.all({:conditions => ['parent_id in (?)',ids.join(',')]})
 			end while !level_nodes.empty?
 			tree_nodes
 		end
@@ -83,10 +83,10 @@ module ActionView
 		# :category (String) : name of current category eg. 'Shoes'
 		# :id_prefix (String) : will be prepended to ids of menu eg. 'section_'
 		def category_menu_items(aRootCategory, aOptions={})
-			aBaseUrl = (aOptions[:base_url] ? MiscUtils.remove_slash(aOptions[:base_url]) : '/')
+			aBaseUrl = (aOptions[:base_url] || '')
 			aIdPrefix = (aOptions[:id_prefix] || '')
 			category = aOptions[:category]
-			category = category.name.urlize(true) if category.is_a?(Category)
+			category = category.name.urlize('+') if category.is_a?(Category)
 			tree_nodes = construct_category_tree(aRootCategory)
 	
 			# now turn tree_nodes into menu items, still as array of levels
@@ -96,16 +96,18 @@ module ActionView
 				item_level = []
 				lvl.each do |node|
 					name = (node.name.index('/') ? File.basename(node.name) : node.name)
-					item = {:id => aIdPrefix+name.urlize, :name => name }
+					item = {:id => aIdPrefix+node.id.to_s, :name => name }
 					item[:node] = node
 					if last_lvl && parent_item = last_lvl.find {|i| i[:node].id == node.parent_id}
 						parent_item[:children] ||= []
 						parent_item[:children] << item
-						item[:url] = MiscUtils.append_slash(parent_item[:url]) + name.urlize
+						item[:url] = parent_item[:url]
+						item[:url] += '+' unless item[:url]=='' || item[:url].ends_with?('/') || item[:url].ends_with?('+')
+						item[:url] += name.urlize('-')
 					else
 						item[:url] = aBaseUrl
 					end
-					item[:selected] = true if category && category==node.name.urlize(true)
+					item[:selected] = true if category && category==node.name.urlize('+')
 					item_level << item
 				end
 				tree_items << item_level
