@@ -1,6 +1,9 @@
 module ActionView
   module Helpers
-	
+		
+		# makes these accessible via ActionView::Helpers.function
+		module_function
+		
 		def google_analytics(aTrackingId = nil)
 			return '' if request.host.begins_with?('cms.')
 			aTrackingId ||= APP_CONFIG[:google_analytics_tracking_id]
@@ -23,7 +26,7 @@ module ActionView
 		def default_content_for(name, &block)
 			name = name.kind_of?(Symbol) ? ":#{name}" : name
 			out = eval("yield #{name}", block.binding)
-			concat(out || capture(&block), block.binding)
+			concat(out || capture(&block))
 		end
 
 		#render_menu(), or more precisely menu_items() doesn't seem to work well
@@ -47,7 +50,8 @@ module ActionView
 
       selected_page = opts[:page] || @page
 			ancestors = selected_page.ancestors
-			top_section = ancestors[opts[:from_top]]
+			top_section = ancestors[opts[:from_top].to_i]
+			return '' unless top_section
 			opts[:path] = top_section.path
 			
 			ancestors << selected_page if (selected_page.section == top_section) || (selected_page != selected_page.section.pages.first)
@@ -59,6 +63,60 @@ module ActionView
 			return '' if opts[:items].empty? || (opts[:items].length == 1 && !opts[:items].first[:children])	# return blank if only a single menu item
 			
 			render_menu opts
+		end
+
+		# Construct tree_nodes, an array of arrays - each array a level in tree.
+		# Each level is a list children to the parents in the level before
+		def construct_category_tree(aRootCategory)
+			aRootCategory = Category.find_by_name(aRootCategory) unless aRootCategory.is_a? Category
+			tree_nodes = []
+			level_nodes = [aRootCategory]
+			begin
+				tree_nodes << level_nodes
+				ids = level_nodes.map {|n| n.id}
+				level_nodes = Category.all({:conditions => ['parent_id in (?)',ids.join(',')]})
+			end while !level_nodes.empty?
+			tree_nodes
+		end
+
+		# :base_url (String) : prepended to menu urls eg. /products
+		# :category (String) : name of current category eg. 'Shoes'
+		# :id_prefix (String) : will be prepended to ids of menu eg. 'section_'
+		def category_menu_items(aRootCategory, aOptions={})
+			aBaseUrl = (aOptions[:base_url] ? MiscUtils.remove_slash(aOptions[:base_url]) : '/')
+			aIdPrefix = (aOptions[:id_prefix] || '')
+			category = aOptions[:category]
+			category = category.name.urlize(true) if category.is_a?(Category)
+			tree_nodes = construct_category_tree(aRootCategory)
+	
+			# now turn tree_nodes into menu items, still as array of levels
+			tree_items = []
+			last_lvl = nil
+			tree_nodes.each do |lvl|
+				item_level = []
+				lvl.each do |node|
+					name = (node.name.index('/') ? File.basename(node.name) : node.name)
+					item = {:id => aIdPrefix+name.urlize, :name => name }
+					item[:node] = node
+					if last_lvl && parent_item = last_lvl.find {|i| i[:node].id == node.parent_id}
+						parent_item[:children] ||= []
+						parent_item[:children] << item
+						item[:url] = MiscUtils.append_slash(parent_item[:url]) + name.urlize
+					else
+						item[:url] = aBaseUrl
+					end
+					item[:selected] = true if category && category==node.name.urlize(true)
+					item_level << item
+				end
+				tree_items << item_level
+				last_lvl = item_level
+			end
+	
+			# clean
+			tree_items.each do |lvl|
+				lvl.each{|i| i.filter_include!([:url,:selected,:id,:name,:children])}
+			end
+			tree_items.first
 		end
 
     module CaptureHelper

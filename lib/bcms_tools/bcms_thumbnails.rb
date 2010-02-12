@@ -13,7 +13,7 @@ module BcmsTools
 		
 		def self.thumbnail_name_from_attachment(aAttachment,aWidth,aHeight)
 			extThumb = aAttachment.file_extension
-			size = "#{aWidth}x#{aHeight}"
+			size = "#{aWidth.to_s}x#{aHeight.to_s}"
 			return File.basename(aAttachment.file_location)+'-'+size+'.'+extThumb
 		end
 		
@@ -31,7 +31,17 @@ module BcmsTools
 			return att && att.full_file_location
 		end
 		
+		# Scale given aWidth,aHeight up to fit within aDestWidth,aDestHeight
+		# return original width and height if nil given for both aDestWidth & aDestHeight
+		# If either aDestWidth or aDestHeight are nil, it will scale to fit the other dimension
 		def self.scale_to_fit(aWidth,aHeight,aDestWidth,aDestHeight)
+			if aDestWidth.nil? && aDestHeight.nil?
+				wRatio = 1
+				hRatio = 1
+			else
+				wRatio = aDestWidth / aWidth unless aDestWidth.nil?
+				hRatio = (aDestHeight.nil? ? wRatio : (aDestHeight / aHeight))
+			end
 			wRatio = aDestWidth / aWidth
 			hRatio = aDestHeight / aHeight
 			ratio = (wRatio < hRatio ? wRatio : hRatio)
