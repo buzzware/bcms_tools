@@ -68,9 +68,17 @@ module ActionView
 		# Construct tree_nodes, an array of arrays - each array a level in tree.
 		# Each level is a list children to the parents in the level before
 		def construct_category_tree(aRootCategory)
-			aRootCategory = Category.find_by_name(aRootCategory) unless aRootCategory.is_a? Category
+			level_nodes = case aRootCategory
+				when String
+					[Category.find_by_name(aRootCategory)]
+				when Category 
+					[aRootCategory]
+				when CategoryType
+					[aRootCategory.categories.top_level]
+				else
+					CategoryType.first.categories.top_level
+			end
 			tree_nodes = []
-			level_nodes = [aRootCategory]
 			begin
 				tree_nodes << level_nodes
 				ids = level_nodes.map {|n| n.id}
@@ -105,9 +113,10 @@ module ActionView
 						item[:url] += '+' unless item[:url]=='' || item[:url].ends_with?('/') || item[:url].ends_with?('+')
 						item[:url] += name.urlize('-')
 					else
-						item[:url] = aBaseUrl
+						item[:url] = File.join(aBaseUrl,name.urlize('-'))
 					end
-					item[:selected] = true if category && category==node.name.urlize('+')
+					
+					item[:selected] = true if category && (category==node.name.urlize('+'))
 					item_level << item
 				end
 				tree_items << item_level
