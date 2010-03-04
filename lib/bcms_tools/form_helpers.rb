@@ -5,7 +5,7 @@ Cms::FormBuilder.class_eval do
 	# ensure the related css is included
 	def ensure_css
 		template.content_for :html_head do
-			template.stylesheet_link_tag("for_bcms_tools.css")
+			template.stylesheet_link_tag("bcms_tools.css")
 		end	
 	end
 
@@ -52,10 +52,14 @@ Cms::FormBuilder.class_eval do
 	def thumbnail_upload_field(aOptions)
 		ensure_css
 		aOptions[:label] ||= "Upload Image"
-		result = cms_file_field(:attachment_file, aOptions) + '<br clear="all" />'
-		method = 'attachment_file'
+		method = (aOptions.delete(:method) || :attachment)
+		method_file = (method.to_s + '_file').to_sym
+		_attachment = object.send(method)
+		result = cms_file_field(method_file.to_sym, aOptions) + '<br clear="all" />'
 		
-		underscore_id = object_name+'_'+options[:index].to_s+'_'+method
+		underscore_id = object_name
+		underscore_id += '_'+options[:index].to_s if options[:index]
+		underscore_id += '_'+method_file.to_s
 		underscore_id_esc = jquery_escape(underscore_id)
 		underscore_id_nobrac = underscore_id.gsub('[','_').gsub(']','')
 
@@ -75,13 +79,13 @@ Cms::FormBuilder.class_eval do
 			end
 		end
 				
-		thumbnail = if object.attachment
-			"<img class=\"thumbnail\" src=\"#{Cms::PageHelper.attachment_cropped_src(object.attachment,64,64)}\" width=\"64\" height=\"64\"/>"
+		thumbnail = if _attachment
+			"<img class=\"thumbnail\" src=\"#{Cms::PageHelper.attachment_cropped_src(_attachment,64,64)}\" width=\"64\" height=\"64\"/>"
 		else
 			'<div style="width: 64px; height: 64px; position:static; display: block; float: left; border-style: solid; border-width: 1px; border-color: gray"></div>'
 		end
 		result = result.sub('</label>','</label>'+thumbnail)
-		result = result.gsub(object_name+'_'+method,underscore_id)
+		result = result.gsub(object_name+'_'+method_file.to_s,underscore_id)
 		result = StringUtils.split3(result,/<div class="fields file_fields.*?>/) {|h,m,t| XmlUtils.quick_join_att(m,'class','thumbnail_upload',' ') }  
 		result = '<div style="display: block; float: right; width: auto; height: auto;">'+remove_check_box()+'</div>' + result unless aOptions[:remove_check_box]==false || object.new_record?
 		return result
@@ -99,6 +103,20 @@ Cms::FormBuilder.class_eval do
 		content = template.capture(&block)
 		template.concat("<div class=\"#{aClass}\">")
 		template.concat(content)
+		template.concat("</div>")
+	end
+
+	def text_display_field(aField,aOptions={})
+		template.concat('<div class="fields text_fields">')
+		if aOptions[:label]
+			label aField, aOptions[:label]
+		else
+			label aField
+		end
+		template.concat("<div id=\"artist_#{aField}\" class=\"text_display\">#{object.send(aField.to_sym)}</div>")
+		
+		template.concat("<div class=\"instructions\">#{aOptions[:instructions]}</div>") if aOptions[:instructions]
+		template.concat("<br clear=\"all\" />") # Fixes issue with bad line wrapping
 		template.concat("</div>")
 	end
 

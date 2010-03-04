@@ -117,6 +117,7 @@ module BcmsTools
 		end
 		
 		def attachment_cropped_src(aAttachment,aWidth,aHeight)
+			return '' if !aAttachment
 			begin	
 				pathImage = aAttachment.full_file_location
 				throw RuntimeError.new("file doesn't exist #{pathImage}") unless File.exists? pathImage
