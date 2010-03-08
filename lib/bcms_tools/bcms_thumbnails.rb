@@ -34,6 +34,7 @@ module BcmsTools
 		# Scale given aWidth,aHeight up to fit within aDestWidth,aDestHeight
 		# return original width and height if nil given for both aDestWidth & aDestHeight
 		# If either aDestWidth or aDestHeight are nil, it will scale to fit the other dimension
+		# If both are non-nil, the maximum scaled size that will fit inside the given width and height will be returned.
 		def self.scale_to_fit(aWidth,aHeight,aDestWidth,aDestHeight)
 			if aDestWidth.nil? && aDestHeight.nil?
 				wRatio = 1
@@ -51,6 +52,8 @@ module BcmsTools
 	end
 	
 	module PageHelper
+	
+		module_function # this makes these methods callable as BcmsTools::PageHelper.method
 
 		def container_sized(aName,aWidth,aHeight)
 			StringUtils.split3(container(aName),/<img.*?>/,-1) do |head,img,tail|
@@ -138,6 +141,33 @@ module BcmsTools
 				return ''
 			end
 		end
+		
+		def attachment_max_src(aAttachment,aWidth,aHeight)
+			return '' if !aAttachment
+			begin	
+				pathImage = aAttachment.full_file_location
+				throw RuntimeError.new("file doesn't exist #{pathImage}") unless File.exists? pathImage
+				throw RuntimeError.new("could not get file geometry #{pathImage}") unless geomImage = Paperclip::Geometry.from_file(pathImage)
+				nameThumb = BcmsTools::Thumbnails::thumbnail_name_from_attachment(aAttachment,aWidth,aHeight)		
+				pathThumb = File.join(APP_CONFIG[:thumbs_cache],nameThumb)
+							
+				aDestWidth,aDestHeight = BcmsTools::Thumbnails::scale_to_fit(geomImage.width,geomImage.height,aWidth,aHeight).map {|i| i.to_i}
+				if !File.exists?(pathThumb)
+					# generate thumbnail at size to fit container
+					throw RuntimeError.new("Failed reading image #{pathImage}") unless objThumb = Paperclip::Thumbnail.new(File.new(pathImage), "#{aDestWidth}x#{aDestHeight}")
+					throw RuntimeError.new("Failed making thumbnail #{pathImage}") unless foThumb = objThumb.make
+					FileUtils.cp(foThumb.path,pathThumb)
+					FileUtils.chmod(0644,pathThumb)
+					FileUtils.rm(foThumb.path)
+				end
+				return File.join(APP_CONFIG[:thumbs_url],nameThumb)
+			rescue Exception => e
+				RAILS_DEFAULT_LOGGER.warn "thumberize_img error: #{e.inspect}"
+				RAILS_DEFAULT_LOGGER.debug e.backtrace      
+				return ''
+			end
+		end
+		
 		
 		def framed_attachment_img(aAttachment,aWidth,aHeight)
 			begin

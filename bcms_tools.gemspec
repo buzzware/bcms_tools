@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{bcms_tools}
-  s.version = "0.0.5"
+  s.version = "0.0.7"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["buzzware"]
-  s.date = %q{2010-02-15}
+  s.date = %q{2010-03-08}
   s.description = %q{Tools for BrowserCms.}
   s.email = %q{contact@buzzware.com.au}
   s.extra_rdoc_files = [
@@ -31,6 +31,8 @@ Gem::Specification.new do |s|
      "lib/bcms_tools/bcms_thumbnails.rb",
      "lib/bcms_tools/form_helpers.rb",
      "lib/bcms_tools/form_helpers.rb",
+     "lib/bcms_tools/migration_helpers.rb",
+     "lib/bcms_tools/migration_helpers.rb",
      "lib/bcms_tools/view_helpers.rb",
      "lib/bcms_tools/view_helpers.rb",
      "lib/bcms_tools_dev.rb",

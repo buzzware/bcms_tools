@@ -1,0 +1,68 @@
+div.thumbnail_upload div.file_inputs {
+  height: 64px;
+}
+
+div.thumbnail_upload input.mock {
+  width: 306px; /* 378 - 64*/
+  left: 72px;
+  top: 16px;
+}
+
+div.thumbnail_upload input.file {
+  height:64px;
+  left:-64px;
+  top:0;
+  width:456px;
+}
+
+div.thumbnail_upload div.fakefile img {
+  top: 16px;
+}
+
+div.thumbnail_upload img.thumbnail {
+  position: static; 
+  display: block; 
+  float: left; 
+  margin: 0;
+}
+
+div.child_fields {
+  margin-left: 16px; 
+  border-width: 4px; 
+  border-style: solid; 
+  margin-top: 8px; 
+  padding: 8px; 
+  border-color: gray;
+}
+
+.text_editor_fields textarea.a_few_lines {
+  height: auto;
+}
+
+.horiz_menu {
+	margin: 0;
+	padding: 0;
+}
+
+.horiz_menu ul {
+	margin: 0;
+	padding: 0;
+}
+
+.horiz_menu li {
+  display: -moz-inline-box; 
+  display: inline-block; 
+  zoom: 1; 
+  *display:inline
+  height:auto;
+  width:auto;
+  padding: 5px 8px;
+  list-style:none;
+  list-style-type:none;
+}
+
+.horiz_menu li.on {
+  font-weight: bold;
+}
+
+
