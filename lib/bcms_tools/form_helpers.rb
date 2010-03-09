@@ -80,7 +80,7 @@ Cms::FormBuilder.class_eval do
 		end
 				
 		thumbnail = if _attachment
-			"<img class=\"thumbnail\" src=\"#{Cms::PageHelper.attachment_cropped_src(_attachment,64,64)}\" width=\"64\" height=\"64\"/>"
+			"<img class=\"thumbnail\" src=\"#{BcmsTools::PageHelper.attachment_cropped_src(_attachment,64,64)}\" width=\"64\" height=\"64\"/>"
 		else
 			'<div style="width: 64px; height: 64px; position:static; display: block; float: left; border-style: solid; border-width: 1px; border-color: gray"></div>'
 		end
