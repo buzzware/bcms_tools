@@ -14,8 +14,20 @@ module BcmsTools
 		def self.thumbnail_name_from_attachment(aAttachment,aWidth,aHeight)
 			extThumb = aAttachment.file_extension
 			size = "#{aWidth.to_s}x#{aHeight.to_s}"
-			return File.basename(aAttachment.file_location)+'-'+size+'.'+extThumb
+			result = File.basename(aAttachment.file_location)+'-'
+			result += if aWidth && aHeight
+				size+'.'+extThumb
+			else
+				'*'
+			end
+			result
 		end
+		
+		def self.remove_attachment_thumbnails(aAttachment)
+			nameThumb = thumbnail_name_from_attachment(aAttachment,nil,nil)		
+			pathThumbWildcard = File.join(APP_CONFIG[:thumbs_cache],nameThumb)
+			FileUtils.rm(Dir.glob(pathThumbWildcard))
+		end		
 		
 		def self.attachment_from_url(aUrl)
 			if aUrl.begins_with?('/cms/attachments/')
