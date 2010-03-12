@@ -55,7 +55,7 @@ Cms::FormBuilder.class_eval do
 		method = (aOptions.delete(:method) || :attachment)
 		method_file = (method.to_s + '_file').to_sym
 		_attachment = object.send(method)
-		result = cms_file_field(method_file.to_sym, aOptions) + '<br clear="all" />'
+		result = cms_file_field(method_file.to_sym, aOptions)
 		
 		underscore_id = object_name
 		underscore_id += '_'+options[:index].to_s if options[:index]
@@ -87,7 +87,12 @@ Cms::FormBuilder.class_eval do
 		result = result.sub('</label>','</label>'+thumbnail)
 		result = result.gsub(object_name+'_'+method_file.to_s,underscore_id)
 		result = StringUtils.split3(result,/<div class="fields file_fields.*?>/) {|h,m,t| XmlUtils.quick_join_att(m,'class','thumbnail_upload',' ') }  
-		result = '<div style="display: block; float: right; width: auto; height: auto;">'+remove_check_box()+'</div>' + result unless aOptions[:remove_check_box]==false || object.new_record?
+		unless aOptions[:remove_check_box]==false || object.new_record?
+			checkbox = '<div style="display: block; float: right; width: auto; height: auto;">'+remove_check_box()+'</div>'
+			result = StringUtils.split3(result,/<div.*?>/){|h,m,t| 
+				m+checkbox
+			}
+		end
 		return result
 	end
 
@@ -107,6 +112,7 @@ Cms::FormBuilder.class_eval do
 	end
 
 	def text_display_field(aField,aOptions={})
+		template.concat("<br clear=\"all\" />") # Fixes issue with bad line wrapping
 		template.concat('<div class="fields text_fields">')
 		if aOptions[:label]
 			label aField, aOptions[:label]
