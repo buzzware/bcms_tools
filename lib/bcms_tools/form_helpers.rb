@@ -93,6 +93,7 @@ Cms::FormBuilder.class_eval do
 				m+checkbox
 			}
 		end
+		result = StringUtils.split3(result,/<div.*?>/){|h,m,t| m+'<br clear="all" />'}		
 		return result
 	end
 
