@@ -1,16 +1,6 @@
 module BcmsTools
 	module Thumbnails
-	
-		# for future bcms tools gem
-		#http://snippets.dzone.com/posts/show/295
-		#def close_tags(text)
-		#	open_tags = []
-		#	text.scan(/\<([^\>\s\/]+)[^\>\/]*?\>/).each { |t| open_tags.unshift(t) }
-		#	text.scan(/\<\/([^\>\s\/]+)[^\>]*?\>/).each { |t| open_tags.slice!(open_tags.index(t)) }
-		#	open_tags.each {|t| text += "</#{t}>" }
-		#	text
-		#end
-		
+			
 		def self.thumbnail_name_from_attachment(aAttachment,aWidth,aHeight)
 			extThumb = aAttachment.file_extension
 			size = "#{aWidth.to_s}x#{aHeight.to_s}"
@@ -49,15 +39,13 @@ module BcmsTools
 		# If both are non-nil, the maximum scaled size that will fit inside the given width and height will be returned.
 		def self.scale_to_fit(aWidth,aHeight,aDestWidth,aDestHeight)
 			if aDestWidth.nil? && aDestHeight.nil?
-				wRatio = 1
-				hRatio = 1
+				ratio = 1
 			else
-				wRatio = aDestWidth / aWidth unless aDestWidth.nil?
+				wRatio = aDestWidth && (aDestWidth / aWidth)
 				hRatio = (aDestHeight.nil? ? wRatio : (aDestHeight / aHeight))
+				wRatio ||= hRatio
+				ratio = Math.min(wRatio,hRatio)
 			end
-			wRatio = aDestWidth / aWidth
-			hRatio = aDestHeight / aHeight
-			ratio = (wRatio < hRatio ? wRatio : hRatio)
 			return aWidth*ratio,aHeight*ratio
 		end
 		
@@ -153,6 +141,49 @@ module BcmsTools
 				return ''
 			end
 		end
+		
+		def image_max_src(aImagePath,aWidth,aHeight)
+			return '' if !aImagePath
+			begin	
+				pathImage = aImagePath
+				throw RuntimeError.new("file doesn't exist #{pathImage}") unless File.exists? pathImage
+				throw RuntimeError.new("could not get file geometry #{pathImage}") unless geomImage = Paperclip::Geometry.from_file(pathImage)
+				#nameThumb = BcmsTools::Thumbnails::thumbnail_name_from_attachment(aAttachment,aWidth,aHeight)
+				#def self.thumbnail_name_from_attachment(aAttachment,aWidth,aHeight)
+					extThumb = MiscUtils.file_extension(File.basename(aImagePath)).downcase
+					size = "#{aWidth.to_s}x#{aHeight.to_s}"
+					nameThumb = MiscUtils.file_no_extension(File.basename(aImagePath))+'-'
+					nameThumb += if aWidth || aHeight
+						size+'.'+extThumb
+					else
+						'*'
+					end
+					#result
+				#end
+				
+				
+				
+
+
+				pathThumb = File.join(APP_CONFIG[:thumbs_cache],nameThumb)
+							
+				aDestWidth,aDestHeight = BcmsTools::Thumbnails::scale_to_fit(geomImage.width,geomImage.height,aWidth,aHeight).map {|i| i.to_i}
+				if !File.exists?(pathThumb)
+					# generate thumbnail at size to fit container
+					throw RuntimeError.new("Failed reading image #{pathImage}") unless objThumb = Paperclip::Thumbnail.new(File.new(pathImage), "#{aDestWidth}x#{aDestHeight}")
+					throw RuntimeError.new("Failed making thumbnail #{pathImage}") unless foThumb = objThumb.make
+					FileUtils.cp(foThumb.path,pathThumb)
+					FileUtils.chmod(0644,pathThumb)
+					FileUtils.rm(foThumb.path)
+				end
+				return File.join(APP_CONFIG[:thumbs_url],nameThumb)
+			rescue Exception => e
+				RAILS_DEFAULT_LOGGER.warn "thumberize_img error: #{e.inspect}"
+				RAILS_DEFAULT_LOGGER.debug e.backtrace      
+				return ''
+			end
+		end
+		
 		
 		def attachment_max_src(aAttachment,aWidth,aHeight)
 			return '' if !aAttachment

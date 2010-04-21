@@ -74,6 +74,9 @@
 				Refilter="0"
 				Excludes=""/>
 		</Folder>
+		<Folder Name="rails">
+			<F N="rails/init.rb"/>
+		</Folder>
 		<Folder Name="test">
 			<F
 				N="test/*"
