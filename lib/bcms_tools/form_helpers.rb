@@ -89,8 +89,8 @@ Cms::FormBuilder.class_eval do
 		result = StringUtils.split3(result,/<div class="fields file_fields.*?>/) {|h,m,t| XmlUtils.quick_join_att(m,'class','thumbnail_upload',' ') }  
 		unless aOptions[:remove_check_box]==false || object.new_record?
 			checkbox = '<div style="display: block; float: right; width: auto; height: auto;">'+remove_check_box()+'</div>'
-			result = StringUtils.split3(result,/<div.*?>/){|h,m,t| 
-				m+checkbox
+			result = StringUtils.split3(result,/<\/div>\Z/){|h,m,t| 
+				checkbox+'<br clear="all">'+m
 			}
 		end
 		result = StringUtils.split3(result,/<div.*?>/){|h,m,t| m+'<br clear="all" />'}		

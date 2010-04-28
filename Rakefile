@@ -11,7 +11,7 @@ begin
     gem.homepage = "http://github.com/buzzware/bcms_tools"
     gem.authors = ["buzzware"]
 		gem.add_dependency "buzzcore", ">= 0.3.2"
-		gem.add_dependency "paperclip", "= 2.1.2"
+		gem.add_dependency "paperclip", "= 2.3.1.1"
 		gem.add_dependency "browsercms"
     gem.add_development_dependency "shoulda"
 		gem.files.include %w(
