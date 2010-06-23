@@ -29,8 +29,6 @@ Paperclip::Geometry.class_eval do
 	end
 end
 
-# !!! must also fix /Library/Ruby/Gems/1.8/gems/paperclip-2.3.1.1/lib/paperclip/thumbnail.rb:54
-# and put in lighthouse
 Paperclip::Thumbnail.class_eval do
 
 	attr_accessor :basename		# need access to basename so we can change it away from bizarre file names that cause problems. could auto generate better names here
@@ -59,6 +57,20 @@ Paperclip::Thumbnail.class_eval do
 		end
 
 		dst
+	end
+
+	# returns true if succesful or false
+	def make_custom(aDestpath)
+		src = @file
+		srcpath = File.expand_path(src.path).gsub('$','\$')	# escape $, more chars may need to be added
+		command = "#{ source_file_options } \"#{ srcpath }[0]\" #{ transformation_command } \"#{ File.expand_path(aDestpath) }\""
+		success = false
+		begin
+			success = (Paperclip.run("convert", command)=='')	# assuming output always mean failure
+		rescue Paperclip::PaperclipCommandLineError
+			raise Paperclip::PaperclipError, "There was an error processing the thumbnail for #{@basename}" if @whiny
+		end
+		success
 	end
 
 end
@@ -175,12 +187,10 @@ module Buzzcore
 					pathThumb = File.join(aDestFolder,nameThumb)
 	
 					if !File.exists?(pathThumb)
-						throw RuntimeError.new("Failed reading image #{aSource}") unless objThumb = Paperclip::Thumbnail.new(File.new(aSource), :geometry => resize_spec+resize_mod, :format => :jpg)
+						throw RuntimeError.new("Failed reading image #{aSource}") unless objThumb = Paperclip::Thumbnail.new(File.new(aSource), :geometry => resize_spec+resize_mod, :format => :jpg, :convert_options => '-quality 85')
 						objThumb.basename = MiscUtils.file_no_extension(nameThumb)
-						throw RuntimeError.new("Failed making thumbnail #{aSource}") unless foThumb = objThumb.make
-						FileUtils.cp(foThumb.path,pathThumb)
+						throw RuntimeError.new("Failed making thumbnail #{aSource}") unless objThumb.make_custom(pathThumb)
 						FileUtils.chmod(0644,pathThumb)
-						FileUtils.rm(foThumb.path)
 					end
 					src = File.join(aBaseUrl,nameThumb)
 					details.merge!({
