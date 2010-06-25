@@ -6,7 +6,7 @@
 	<Config
 		Name="Release"
 		OutputFile=""
-		CompilerConfigName="Latest Version">
+		CompilerConfigName="">
 		<Menu>
 			<Target
 				Name="Compile"
@@ -44,14 +44,14 @@
 				MenuCaption="E&amp;xecute"
 				SaveOption="SaveNone"
 				RunFromDir="%rw">
-				<Exec CmdLine='"FrescoClient.exe"'/>
+				<Exec CmdLine='".exe"'/>
 			</Target>
 		</Menu>
 	</Config>
 	<CustomFolders>
 		<Folder
 			Name="Source Files"
-			Filters="*.c;*.C;*.cc;*.cpp;*.cp;*.cxx;*.c++;*.prg;*.pas;*.dpr;*.asm;*.s;*.bas;*.java;*.cs;*.sc;*.e;*.cob;*.html;*.rc;*.tcl;*.py;*.pl"/>
+			Filters="*.c;*.C;*.cc;*.cpp;*.cp;*.cxx;*.c++;*.prg;*.pas;*.dpr;*.asm;*.s;*.bas;*.java;*.cs;*.sc;*.e;*.cob;*.html;*.rc;*.tcl;*.py;*.pl;*.d"/>
 		<Folder
 			Name="Header Files"
 			Filters="*.h;*.H;*.hh;*.hpp;*.hxx;*.inc;*.sh;*.cpy;*.if"/>
@@ -67,27 +67,14 @@
 		</Folder>
 	</CustomFolders>
 	<Files AutoFolders="DirectoryView">
-		<Folder Name="lib">
-			<F
-				N="lib/*"
-				Recurse="1"
-				Refilter="0"
-				Excludes=""/>
-		</Folder>
-		<Folder Name="rails">
-			<F N="rails/init.rb"/>
-		</Folder>
-		<Folder Name="test">
-			<F
-				N="test/*"
-				Recurse="1"
-				Refilter="0"
-				Excludes=""/>
-		</Folder>
 		<F
-			N="*"
-			Recurse="0"
-			Refilter="0"
-			Excludes=""/>
+			N="*.rb"
+			Recurse="1"
+			Refilter="1"
+			Excludes=".svn/"/>
+		<F N="bcms_tools.gemspec"/>
+		<F N="Rakefile"/>
+		<F N="README.rdoc"/>
+		<F N="VERSION"/>
 	</Files>
 </Project>

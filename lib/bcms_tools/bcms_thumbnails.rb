@@ -63,7 +63,9 @@ Paperclip::Thumbnail.class_eval do
 	def make_custom(aDestpath)
 		src = @file
 		srcpath = File.expand_path(src.path).gsub('$','\$')	# escape $, more chars may need to be added
-		command = "#{ source_file_options } \"#{ srcpath }[0]\" #{ transformation_command } \"#{ File.expand_path(aDestpath) }\""
+		tcmd = transformation_command.sub('-resize','-strip -thumbnail')
+		command = "#{ source_file_options } \"#{ srcpath }[0]\" #{ tcmd } \"#{ File.expand_path(aDestpath) }\""
+
 		success = false
 		begin
 			success = (Paperclip.run("convert", command)=='')	# assuming output always mean failure
