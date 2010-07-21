@@ -23,6 +23,53 @@ module ActionView
 			EOS
 		end
 
+		def mailto_a_friend(aSubject,aOptions={})
+			<<-EOS
+				<SCRIPT LANGUAGE="JavaScript">
+				<!-- Begin
+				
+				//Script by Tronn: http://come.to/tronds
+				//Submitted to JavaScript Kit (http://javascriptkit.com)
+				//Visit http://javascriptkit.com for this script
+				
+				var initialsubj="#{aSubject}"
+				var initialmsg="Hello! You may be interested in this : "+window.location+" \n \n \n"
+				var good;
+				function checkEmailAddress(field) {
+				
+				var goodEmail = field.value.match(/\b(^(\S+@).+((\.com)|(\.net)|(\.edu)|(\.mil)|(\.gov)|(\.org)|(\.info)|(\.sex)|(\.biz)|(\.aero)|(\.coop)|(\.museum)|(\.name)|(\.pro)|(\..{2,2}))$)\b/gi);
+				if (goodEmail) {
+				good = true;
+				}
+				else {
+				alert('Please enter a valid address.');
+				field.focus();
+				field.select();
+				good = false;
+					 }
+				}
+				u = window.location;
+				function mailThisUrl() {
+				good = false
+				checkEmailAddress(document.mailto_a_friend.email);
+				if (good) {
+				
+				//window.location = "mailto:"+document.mailto_a_friend.email.value+"?subject="+initialsubj+"&body="+document.title+" "+u;
+				window.location = "mailto:"+document.mailto_a_friend.email.value+"?subject="+initialsubj+"&body="+initialmsg
+					 }
+				}
+				//  End -->
+				</script>
+				
+				
+				<form class="mailto_a_friend" name="mailto_a_friend">
+				<input class="mailto_a_friend" type="text" name="email" size="26" value="Email Address Here" onFocus="this.value=''" onMouseOver="window.status='Enter email address here and tell a friend about this...'; return true" onMouseOut="window.status='';return true">
+				<input class="mailto_a_friend" type="button" value="Email to a friend" onMouseOver="window.status='Enter email address above and click this to send an email to a friend!'; return true" onMouseOut="window.status='';return true" onClick="mailThisUrl();">
+				</form>		
+
+			EOS
+		end
+
 		def default_content_for(name, &block)
 			name = name.kind_of?(Symbol) ? ":#{name}" : name
 			out = eval("yield #{name}", block.binding)

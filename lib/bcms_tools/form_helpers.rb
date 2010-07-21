@@ -126,6 +126,23 @@ Cms::FormBuilder.class_eval do
 		template.concat("<br clear=\"all\" />") # Fixes issue with bad line wrapping
 		template.concat("</div>")
 	end
+	
+	def bcmstools_check_box(aField,aOptions={})
+		result = "<br clear=\"all\" />" # Fixes issue with bad line wrapping
+		result += '<div class="fields text_fields">'
+		result += if aOptions[:label]
+			label aField, aOptions[:label]
+		else
+			label aField
+		end
+		ins = aOptions.delete(:instructions)
+		result += check_box(aField, aOptions)
+		
+		result += "<div class=\"instructions\">#{ins}</div>" if aOptions[:instructions]
+		result += "<br clear=\"all\" />" # Fixes issue with bad line wrapping
+		result += "</div>"
+		result
+	end
 
 end
 
