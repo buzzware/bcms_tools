@@ -151,7 +151,7 @@ module ActionView
 				item_level = []
 				lvl.each do |node|
 					name = (node.name.index('/') ? File.basename(node.name) : node.name)
-					item = {:id => aIdPrefix+node.id.to_s, :name => name }
+					item = {:id => aIdPrefix+node.id.to_s, :name => name }	
 					item[:node] = node
 					if last_lvl && parent_item = last_lvl.find {|i| i[:node].id == node.parent_id}
 						parent_item[:children] ||= []
@@ -164,8 +164,10 @@ module ActionView
 					end
 					
 					item[:selected] = true if category && (category==node.name.urlize('+'))
+					item[:order] = aOptions[:order_proc].call(item) if aOptions.has_key?(:order_proc)
 					item_level << item
 				end
+				item_level.sort! {|a,b| a[:order].to_i <=> b[:order].to_i}
 				tree_items << item_level
 				last_lvl = item_level
 			end
