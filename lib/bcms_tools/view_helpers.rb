@@ -167,15 +167,17 @@ module ActionView
 					item[:order] = aOptions[:order_proc].call(item) if aOptions.has_key?(:order_proc)
 					item_level << item
 				end
-				item_level.sort! {|a,b| a[:order].to_i <=> b[:order].to_i}
 				tree_items << item_level
 				last_lvl = item_level
 			end
-	
 			# clean
 			tree_items.each do |lvl|
-				lvl.each{|i| i.filter_include!([:url,:selected,:id,:name,:children])}
+				lvl.each do |i| 
+					i.filter_include!([:url,:selected,:id,:name,:children,:order])
+					i[:children].sort! {|a,b| a[:order].to_i <=> b[:order].to_i} if i[:children].is_a?(Array)
+				end
 			end
+			tree_items.first.sort! {|a,b| a[:order].to_i <=> b[:order].to_i}
 			tree_items.first
 		end
 
