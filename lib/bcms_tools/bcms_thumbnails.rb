@@ -191,8 +191,12 @@ module Buzzcore
 					if !File.exists?(pathThumb)
 						throw RuntimeError.new("Failed reading image #{aSource}") unless objThumb = Paperclip::Thumbnail.new(File.new(aSource), :geometry => resize_spec+resize_mod, :format => :jpg, :convert_options => '-quality 85')
 						objThumb.basename = MiscUtils.file_no_extension(nameThumb)
+						RAILS_DEFAULT_LOGGER.debug 'render_thumbnail: generating '+pathThumb
+						
 						throw RuntimeError.new("Failed making thumbnail #{aSource}") unless objThumb.make_custom(pathThumb)
 						FileUtils.chmod(0644,pathThumb)
+					else
+						RAILS_DEFAULT_LOGGER.debug 'render_thumbnail: using cached '+pathThumb
 					end
 					src = File.join(aBaseUrl,nameThumb)
 					details.merge!({
@@ -222,13 +226,17 @@ module BcmsTools
 		def self.thumbnail_name_from_attachment(aAttachment,aWidth,aHeight)
 			extThumb = 'jpg' #aAttachment.file_extension
 			size = "#{aWidth.to_s}x#{aHeight.to_s}"
-			result = File.basename(aAttachment.file_location)+'-'
+			result = MiscUtils.file_no_extension(aAttachment.file_path).bite('/').gsub('/','--')+'-'+aAttachment.file_location[-4,4]+'-'
 			result += if aWidth && aHeight
 				size+'.'+extThumb
 			else
 				'*'
 			end
 			result
+		end
+		
+		def self.thumbnail_path_from_attachment(aAttachment,aWidth,aHeight)
+			File.join(APP_CONFIG[:thumbs_cache],thumbnail_name_from_attachment(aAttachment,aWidth,aHeight))
 		end
 		
 		def self.remove_attachment_thumbnails(aAttachment)
@@ -308,29 +316,6 @@ module BcmsTools
 			
 				att = BcmsTools::Thumbnails::attachment_from_url(urlImage)
 				return img = framed_attachment_img(att,aWidth,aHeight,img)
-
-				#src = attachment_max_src(aAttachment,aWidth,aHeight,img)
-				#
-				#pathImage = att && att.full_file_location
-        #
-				#throw RuntimeError.new("file doesn't exist #{pathImage}") unless File.exists? pathImage
-				#throw RuntimeError.new("could not get file geometry #{pathImage}") unless geomImage = Paperclip::Geometry.from_file(pathImage)
-        #
-				#aDestWidth,aDestHeight = BcmsTools::Thumbnails::scale_to_fit(geomImage.width,geomImage.height,aWidth,aHeight).map {|i| i.to_i}
-        #
-				#nameThumb = BcmsTools::Thumbnails::thumbnail_name_from_attachment(att,aWidth,aHeight)
-        #
-				#pathThumb = File.join(APP_CONFIG[:thumbs_cache],nameThumb)
-        #
-				#if !File.exists?(pathThumb)
-				#	# generate thumbnail at size to fit container
-				#	throw RuntimeError.new("Failed reading image #{pathImage}") unless objThumb = Paperclip::Thumbnail.new(File.new(pathImage), "#{aDestWidth}x#{aDestHeight}")
-				#	throw RuntimeError.new("Failed making thumbnail #{pathImage}") unless foThumb = objThumb.make
-				#	FileUtils.cp(foThumb.path,pathThumb,:preserve => true)
-				#	FileUtils.chmod(0644,pathThumb)
-				#	FileUtils.rm(foThumb.path)
-				#	#POpen4::shell_out("sudo -u tca chgrp www-data	#{pathThumb}; sudo -u tca chmod 644 #{pathThumb}")
-				#end
 			
 				#img = XmlUtils.quick_set_att(img,'src',src)		# File.join(APP_CONFIG[:thumbs_url],nameThumb))
 				#return HtmlUtils.fixed_frame_image(img,aWidth,aHeight,aDestWidth,aDestHeight)
@@ -339,42 +324,6 @@ module BcmsTools
 				RAILS_DEFAULT_LOGGER.debug e.backtrace      
 				return img
 			end
-		end
-		
-		def attachment_cropped_src(aAttachment,aWidth,aHeight)
-			return '' if !aAttachment
-
-			Buzzcore::ImageUtils.render_thumbnail(
-				aAttachment.full_file_location,
-				APP_CONFIG[:thumbs_cache],
-				APP_CONFIG[:thumbs_url],
-				aWidth,
-				aHeight,
-				{
-					:name => BcmsTools::Thumbnails::thumbnail_name_from_attachment(aAttachment,aWidth,aHeight),
-					:resize_mode => :cropfill
-				}
-			)
-
-			#begin
-			#	pathImage = aAttachment.full_file_location
-			#	throw RuntimeError.new("file doesn't exist #{pathImage}") unless File.exists? pathImage
-			#	nameThumb = BcmsTools::Thumbnails::thumbnail_name_from_attachment(aAttachment,aWidth,aHeight)
-			#	pathThumb = File.join(APP_CONFIG[:thumbs_cache],nameThumb)
-			#	if !File.exists?(pathThumb)
-			#		# generate thumbnail at size to fit container
-			#		throw RuntimeError.new("Failed reading image #{pathImage}") unless objThumb = Paperclip::Thumbnail.new(File.new(pathImage), "#{aWidth}x#{aHeight}#")
-			#		throw RuntimeError.new("Failed making thumbnail #{pathImage}") unless foThumb = objThumb.make
-			#		FileUtils.cp(foThumb.path,pathThumb)
-			#		FileUtils.chmod(0644,pathThumb)
-			#		FileUtils.rm(foThumb.path)
-			#	end
-			#	return File.join(APP_CONFIG[:thumbs_url],nameThumb)
-			#rescue Exception => e
-			#	RAILS_DEFAULT_LOGGER.warn "thumberize_img error: #{e.inspect}"
-			#	RAILS_DEFAULT_LOGGER.debug e.backtrace
-			#	return ''
-			#end
 		end
 		
 		def shellescape(str)
@@ -398,7 +347,41 @@ module BcmsTools
 			result = shellescape(aString)
 			result.gsub!('\\','\\\\\\')
 		end
+		
+		
+		# resizes and crops to fill given size completely, probably losing part of the image
+		def attachment_cropped_src(aAttachment,aWidth,aHeight)
+			return '' if !aAttachment || !aAttachment.file_location
 
+			Buzzcore::ImageUtils.render_thumbnail(
+				aAttachment.full_file_location,
+				APP_CONFIG[:thumbs_cache],
+				APP_CONFIG[:thumbs_url],
+				aWidth,
+				aHeight,
+				{
+					:name => BcmsTools::Thumbnails::thumbnail_name_from_attachment(aAttachment,aWidth,aHeight),
+					:resize_mode => :cropfill
+				}
+			)
+
+		end
+		
+		# fits entire image within available space, maintaining aspect, probably not filling the space
+		def attachment_max_src(aAttachment,aWidth,aHeight)
+			return '' if !aAttachment
+			Buzzcore::ImageUtils.render_thumbnail(
+				aAttachment.full_file_location,
+				APP_CONFIG[:thumbs_cache],
+				APP_CONFIG[:thumbs_url],
+				aWidth,
+				aHeight,
+				{
+					:name => BcmsTools::Thumbnails::thumbnail_name_from_attachment(aAttachment,aWidth,aHeight),
+					:resize_mode => :fit
+				}
+			)
+		end
 
 		def image_max_src(aImagePath,aWidth,aHeight)
 			Buzzcore::ImageUtils.render_thumbnail(
@@ -409,73 +392,6 @@ module BcmsTools
 				aHeight
 			)
 		end			
-    #
-		#	aSource,			# source file
-		#	aDestFolder,	# folder to put new file in
-		#	aBaseUrl,			# equivalent URL for aDestFolder
-		#	aWidth,				# width (nil means auto)
-		#	aHeight,				# height (nil means auto)
-		#	aOptions = nil
-		#)
-    #
-    #
-    #
-		#	return '' if !aImagePath
-		#	begin
-		#		pathImage = aImagePath
-		#		throw RuntimeError.new("file doesn't exist #{pathImage}") unless File.exists? pathImage
-		#		throw RuntimeError.new("could not get file geometry #{pathImage}") unless geomImage = Paperclip::Geometry.from_file(shellescape2(pathImage))
-		#		#nameThumb = BcmsTools::Thumbnails::thumbnail_name_from_attachment(aAttachment,aWidth,aHeight)
-		#		#def self.thumbnail_name_from_attachment(aAttachment,aWidth,aHeight)
-		#			extThumb = MiscUtils.file_extension(File.basename(aImagePath)).downcase
-		#			size = "#{aWidth.to_s}x#{aHeight.to_s}"
-		#			nameThumb = MiscUtils.file_no_extension(File.basename(aImagePath))+'-'
-		#			nameThumb += if aWidth || aHeight
-		#				size+'.'+extThumb
-		#			else
-		#				'*'
-		#			end
-		#			#result
-		#		#end
-    #
-    #
-    #
-    #
-    #
-		#		pathThumb = File.join(APP_CONFIG[:thumbs_cache],nameThumb)
-    #
-		#		aDestWidth,aDestHeight = BcmsTools::Thumbnails::scale_to_fit(geomImage.width,geomImage.height,aWidth,aHeight).map {|i| i.to_i}
-		#		if !File.exists?(pathThumb)
-		#			# generate thumbnail at size to fit container
-		#			throw RuntimeError.new("Failed reading image #{pathImage}") unless objThumb = Paperclip::Thumbnail.new(File.new(shellescape2(pathImage)), "#{aDestWidth}x#{aDestHeight}")
-		#			throw RuntimeError.new("Failed making thumbnail #{pathImage}") unless foThumb = objThumb.make
-		#			FileUtils.cp(foThumb.path,pathThumb)
-		#			FileUtils.chmod(0644,pathThumb)
-		#			FileUtils.rm(foThumb.path)
-		#		end
-		#		return File.join(APP_CONFIG[:thumbs_url],nameThumb)
-		#	rescue Exception => e
-		#		RAILS_DEFAULT_LOGGER.warn "thumberize_img error: #{e.inspect}"
-		#		RAILS_DEFAULT_LOGGER.debug e.backtrace
-		#		return ''
-		#	end
-		#end
-		
-		
-		def attachment_max_src(aAttachment,aWidth,aHeight)
-			return '' if !aAttachment
-			Buzzcore::ImageUtils.render_thumbnail(
-				aAttachment.full_file_location,
-				APP_CONFIG[:thumbs_cache],
-				APP_CONFIG[:thumbs_url],
-				aWidth,
-				aHeight,
-				{
-					:name => BcmsTools::Thumbnails::thumbnail_name_from_attachment(aAttachment,aWidth,aHeight)
-				}
-			)
-		end
-		
 		
 		def framed_attachment_img(aAttachment,aWidth,aHeight,aImg=nil)
 			return '' if !aAttachment

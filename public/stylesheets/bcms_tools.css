@@ -59,10 +59,10 @@ div.child_fields {
   padding: 5px 8px;
   list-style:none;
   list-style-type:none;
+  float: left;
 }
 
 .horiz_menu li.on {
   font-weight: bold;
 }
-
 
