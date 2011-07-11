@@ -138,7 +138,7 @@ Cms::FormBuilder.class_eval do
 		ins = aOptions.delete(:instructions)
 		result += check_box(aField, aOptions)
 		
-		result += "<div class=\"instructions\">#{ins}</div>" if aOptions[:instructions]
+		result += "<div class=\"instructions\">#{ins}</div>" if ins
 		result += "<br clear=\"all\" />" # Fixes issue with bad line wrapping
 		result += "</div>"
 		result
