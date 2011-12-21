@@ -20,18 +20,18 @@ div.thumbnail_upload div.fakefile img {
 }
 
 div.thumbnail_upload img.thumbnail {
-  position: static; 
-  display: block; 
-  float: left; 
+  position: static;
+  display: block;
+  float: left;
   margin: 0;
 }
 
 div.child_fields {
-  margin-left: 16px; 
-  border-width: 4px; 
-  border-style: solid; 
-  margin-top: 8px; 
-  padding: 8px; 
+  margin-left: 16px;
+  border-width: 4px;
+  border-style: solid;
+  margin-top: 8px;
+  padding: 8px;
   border-color: gray;
 }
 
@@ -50,9 +50,9 @@ div.child_fields {
 }
 
 .horiz_menu li {
-  display: -moz-inline-box; 
-  display: inline-block; 
-  zoom: 1; 
+  display: -moz-inline-box;
+  display: inline-block;
+  zoom: 1;
   *display:inline
   height:auto;
   width:auto;

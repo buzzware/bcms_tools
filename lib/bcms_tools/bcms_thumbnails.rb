@@ -38,7 +38,7 @@ Paperclip::Thumbnail.class_eval do
 		dst = Tempfile.new([@basename, @format].compact.join("."))
 		dst.binmode
 
-		# The original used the following string construction, then removed whitespace ignoring 
+		# The original used the following string construction, then removed whitespace ignoring
 		# the fact that the whitespace may be in a path
 		# Instead we now construct the string normally.
 		#command = <<-end_command
@@ -147,22 +147,22 @@ module Buzzcore
 			else
 				details = {}
 			end
-			if aSource 
+			if aSource
 				begin
 					RAILS_DEFAULT_LOGGER.debug 'render_thumbnail: aSource='+aSource
 					aOptions ||= {}
 					aOptions[:resize_mode] ||= :fit
-					
+
 					throw RuntimeError.new("file doesn't exist #{aSource}") unless File.exists? aSource
 					extThumb = 'jpg'	#MiscUtils.file_extension(File.basename(aSource),false).downcase
 					throw RuntimeError.new("could not get file geometry #{aSource}") unless geomImage = Paperclip::Geometry.from_file(aSource)
-	
+
 					if aWidth || aHeight
 						w,h = aWidth,aHeight
 					else
 						w,h = geomImage.width,geomImage.height		# w,h will never be nil,nil
 					end
-	
+
 					resize_spec = "#{w.to_s}#{h ? 'x'+h.to_s : ''}"
 					resize_mod = ''	# aOptions[:resize_mode]==:fit
 					resize_mod = '#' if aOptions[:resize_mode]==:cropfill
@@ -172,7 +172,7 @@ module Buzzcore
 						when :stretch: 'S'
 						else 'F'
 					end
-	
+
 					if block_given?
 						nameThumb = yield(aSource,aDestFolder,aBaseUrl,aWidth,aHeight,aOptions)
 					elsif aOptions[:name].is_a?(String)
@@ -187,12 +187,12 @@ module Buzzcore
 						nameThumb += resize_spec+resize_char+'.'+extThumb
 					end
 					pathThumb = File.join(aDestFolder,nameThumb)
-	
+
 					if !File.exists?(pathThumb)
 						throw RuntimeError.new("Failed reading image #{aSource}") unless objThumb = Paperclip::Thumbnail.new(File.new(aSource), :geometry => resize_spec+resize_mod, :format => :jpg, :convert_options => '-quality 85')
 						objThumb.basename = MiscUtils.file_no_extension(nameThumb)
 						RAILS_DEFAULT_LOGGER.debug 'render_thumbnail: generating '+pathThumb
-						
+
 						throw RuntimeError.new("Failed making thumbnail #{aSource}") unless objThumb.make_custom(pathThumb)
 						FileUtils.chmod(0644,pathThumb)
 					else
@@ -222,7 +222,7 @@ end
 
 module BcmsTools
 	module Thumbnails
-			
+
 		def self.thumbnail_name_from_attachment(aAttachment,aWidth,aHeight)
 			extThumb = 'jpg' #aAttachment.file_extension
 			size = "#{aWidth.to_s}x#{aHeight.to_s}"
@@ -234,31 +234,31 @@ module BcmsTools
 			end
 			result
 		end
-		
+
 		def self.thumbnail_path_from_attachment(aAttachment,aWidth,aHeight)
 			File.join(APP_CONFIG[:thumbs_cache],thumbnail_name_from_attachment(aAttachment,aWidth,aHeight))
 		end
-		
+
 		def self.remove_attachment_thumbnails(aAttachment)
-			nameThumb = thumbnail_name_from_attachment(aAttachment,nil,nil)		
+			nameThumb = thumbnail_name_from_attachment(aAttachment,nil,nil)
 			pathThumbWildcard = File.join(APP_CONFIG[:thumbs_cache],nameThumb)
 			FileUtils.rm(Dir.glob(pathThumbWildcard))
-		end		
-		
+		end
+
 		def self.attachment_from_url(aUrl)
 			if aUrl.begins_with?('/cms/attachments/')
 				id,version = aUrl.scan(/\/cms\/attachments\/([0-9]+)\?version=([0-9]+)/).flatten.map {|i| i.to_i}
-				att = Attachment.find_by_id_and_version(id,version)																												 
+				att = Attachment.find_by_id_and_version(id,version)
 			else
 				att = Attachment.find_live_by_file_path(aUrl)
 			end
 		end
-		
+
 		def self.image_location_from_url(aUrl)
 			att = attachment_from_url(aUrl)
 			return att && att.full_file_location
 		end
-		
+
 		# Scale given aWidth,aHeight up to fit within aDestWidth,aDestHeight
 		# return original width and height if nil given for both aDestWidth & aDestHeight
 		# If either aDestWidth or aDestHeight are nil, it will scale to fit the other dimension
@@ -274,11 +274,11 @@ module BcmsTools
 			end
 			return aWidth*ratio,aHeight*ratio
 		end
-		
+
 	end
-	
+
 	module PageHelper
-	
+
 		module_function # this makes these methods callable as BcmsTools::PageHelper.method
 
 		def container_sized(aName,aWidth,aHeight)
@@ -291,10 +291,10 @@ module BcmsTools
 				end
 			end
 		end
-		
+
 		# with_images( container(:image_bar) ) do |img|
 		#		thumberize_img(img,width,height)
-		#	end	
+		#	end
 		def with_images(aContainer)
 			return nil if aContainer.nil?
 			result = aContainer.clone
@@ -309,46 +309,46 @@ module BcmsTools
 			end
 			result
 		end
-		
+
 		def thumberize_img(img,aWidth,aHeight)
 			begin
 				urlImage = XmlUtils.quick_att_from_tag(img,'src')
-			
+
 				att = BcmsTools::Thumbnails::attachment_from_url(urlImage)
 				return img = framed_attachment_img(att,aWidth,aHeight,img)
-			
+
 				#img = XmlUtils.quick_set_att(img,'src',src)		# File.join(APP_CONFIG[:thumbs_url],nameThumb))
 				#return HtmlUtils.fixed_frame_image(img,aWidth,aHeight,aDestWidth,aDestHeight)
 			rescue Exception => e
 				RAILS_DEFAULT_LOGGER.warn "thumberize_img error: #{e.inspect}"
-				RAILS_DEFAULT_LOGGER.debug e.backtrace      
+				RAILS_DEFAULT_LOGGER.debug e.backtrace
 				return img
 			end
 		end
-		
+
 		def shellescape(str)
 			# An empty argument will be skipped, so return empty quotes.
 			return "''" if str.empty?
-	
+
 			str = str.dup
-	
+
 			# Process as a single byte sequence because not all shell
 			# implementations are multibyte aware.
 			str.gsub!(/([^A-Za-z0-9_\-.,:\/@\n])/n, "\\\\\\1")
-	
+
 			# A LF cannot be escaped with a backslash because a backslash + LF
 			# combo is regarded as line continuation and simply ignored.
 			str.gsub!(/\n/, "'\n'")
-	
+
 			return str
 		end
-		
+
 		def shellescape2(aString)
 			result = shellescape(aString)
 			result.gsub!('\\','\\\\\\')
 		end
-		
-		
+
+
 		# resizes and crops to fill given size completely, probably losing part of the image
 		def attachment_cropped_src(aAttachment,aWidth,aHeight)
 			return '' if !aAttachment || !aAttachment.file_location
@@ -366,7 +366,7 @@ module BcmsTools
 			)
 
 		end
-		
+
 		# fits entire image within available space, maintaining aspect, probably not filling the space
 		def attachment_max_src(aAttachment,aWidth,aHeight)
 			return '' if !aAttachment
@@ -391,8 +391,8 @@ module BcmsTools
 				aWidth,
 				aHeight
 			)
-		end			
-		
+		end
+
 		def framed_attachment_img(aAttachment,aWidth,aHeight,aImg=nil)
 			return '' if !aAttachment
 			begin
@@ -407,7 +407,7 @@ module BcmsTools
 						:name => BcmsTools::Thumbnails::thumbnail_name_from_attachment(aAttachment,aWidth,aHeight)
 					}
 				)
-				
+
 				if details[:pathThumb]
 					dw,dh = Buzzcore::ImageUtils.image_file_dimensions(details[:pathThumb])	# might be able to optimize using details[:objThumb]
 				else
