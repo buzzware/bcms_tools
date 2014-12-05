@@ -1,9 +1,9 @@
 module ActionView
   module Helpers
-		
+
 		# makes these accessible via ActionView::Helpers.function
 		module_function
-		
+
 		def google_analytics(aTrackingId = nil)
 			return '' if request.host.begins_with?('cms.')
 			aTrackingId ||= APP_CONFIG[:google_analytics_tracking_id]
@@ -27,16 +27,16 @@ module ActionView
 			<<-EOS
 				<SCRIPT LANGUAGE="JavaScript">
 				<!-- Begin
-				
+
 				//Script by Tronn: http://come.to/tronds
 				//Submitted to JavaScript Kit (http://javascriptkit.com)
 				//Visit http://javascriptkit.com for this script
-				
+
 				var initialsubj="#{aSubject}"
 				var initialmsg="Hello! You may be interested in this : "+window.location+" \n \n \n"
 				var good;
 				function checkEmailAddress(field) {
-				
+
 				var goodEmail = field.value.match(/\b(^(\S+@).+((\.com)|(\.net)|(\.edu)|(\.mil)|(\.gov)|(\.org)|(\.info)|(\.sex)|(\.biz)|(\.aero)|(\.coop)|(\.museum)|(\.name)|(\.pro)|(\..{2,2}))$)\b/gi);
 				if (goodEmail) {
 				good = true;
@@ -53,19 +53,19 @@ module ActionView
 				good = false
 				checkEmailAddress(document.mailto_a_friend.email);
 				if (good) {
-				
+
 				//window.location = "mailto:"+document.mailto_a_friend.email.value+"?subject="+initialsubj+"&body="+document.title+" "+u;
 				window.location = "mailto:"+document.mailto_a_friend.email.value+"?subject="+initialsubj+"&body="+initialmsg
 					 }
 				}
 				//  End -->
 				</script>
-				
-				
+
+
 				<form class="mailto_a_friend" name="mailto_a_friend">
 				<input class="mailto_a_friend" type="text" name="email" size="26" value="Email Address Here" onFocus="this.value=''" onMouseOver="window.status='Enter email address here and tell a friend about this...'; return true" onMouseOut="window.status='';return true">
 				<input class="mailto_a_friend" type="button" value="Email to a friend" onMouseOver="window.status='Enter email address above and click this to send an email to a friend!'; return true" onMouseOut="window.status='';return true" onClick="mailThisUrl();">
-				</form>		
+				</form>
 
 			EOS
 		end
@@ -100,15 +100,15 @@ module ActionView
 			top_section = ancestors[opts[:from_top].to_i]
 			return '' unless top_section
 			opts[:path] = top_section.path
-			
+
 			ancestors << selected_page if (selected_page.section == top_section) || (selected_page != selected_page.section.pages.first)
-			
+
 			result_i = Math.min(opts[:from_top] + opts[:depth],ancestors.length-1)
 			opts[:page] = ancestors[result_i]
       opts[:items] ||= menu_items(opts)
 
 			return '' if opts[:items].empty? || (opts[:items].length == 1 && !opts[:items].first[:children])	# return blank if only a single menu item
-			
+
 			render_menu opts
 		end
 
@@ -118,7 +118,7 @@ module ActionView
 			level_nodes = case aRootCategory
 				when String
 					[Category.find_by_name(aRootCategory)]
-				when Category 
+				when Category
 					[aRootCategory]
 				when CategoryType
 					[aRootCategory.categories.top_level]
@@ -143,7 +143,7 @@ module ActionView
 			category = aOptions[:category]
 			category = category.name.urlize('+') if category.is_a?(Category)
 			tree_nodes = construct_category_tree(aRootCategory)
-	
+
 			# now turn tree_nodes into menu items, still as array of levels
 			tree_items = []
 			last_lvl = nil
@@ -151,7 +151,7 @@ module ActionView
 				item_level = []
 				lvl.each do |node|
 					name = (node.name.index('/') ? File.basename(node.name) : node.name)
-					item = {:id => aIdPrefix+node.id.to_s, :name => name }	
+					item = {:id => aIdPrefix+node.id.to_s, :name => name }
 					item[:node] = node
 					if last_lvl && parent_item = last_lvl.find {|i| i[:node].id == node.parent_id}
 						parent_item[:children] ||= []
@@ -162,7 +162,7 @@ module ActionView
 					else
 						item[:url] = File.join(aBaseUrl,name.urlize('-'))
 					end
-					
+
 					item[:selected] = true if category && (category==node.name.urlize('+'))
 					item[:order] = aOptions[:order_proc].call(item) if aOptions.has_key?(:order_proc)
 					item_level << item
@@ -172,7 +172,7 @@ module ActionView
 			end
 			# clean
 			tree_items.each do |lvl|
-				lvl.each do |i| 
+				lvl.each do |i|
 					i.filter_include!([:url,:selected,:id,:name,:children,:order])
 					i[:children].sort! {|a,b| a[:order].to_i <=> b[:order].to_i} if i[:children].is_a?(Array)
 				end

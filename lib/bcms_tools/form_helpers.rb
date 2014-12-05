@@ -6,7 +6,7 @@ Cms::FormBuilder.class_eval do
 	def ensure_css
 		template.content_for :html_head do
 			template.stylesheet_link_tag("bcms_tools.css")
-		end	
+		end
 	end
 
 	def remove_check_box()
@@ -24,11 +24,11 @@ Cms::FormBuilder.class_eval do
 	#//<![CDATA[
 	#
 	#    jQuery(function($) {
-	#      $('#mock_stock_image_attachment_file')									// <input type="text" 
+	#      $('#mock_stock_image_attachment_file')									// <input type="text"
 	#        .focus(function() {this.blur()})
 	#        .mousedown(function() {this.blur()})
-	#      $('#stock_image_attachment_file').change(function() {	// <input type="file" 
-	#          $('#mock_stock_image_attachment_file')							// <input type="text" 
+	#      $('#stock_image_attachment_file').change(function() {	// <input type="file"
+	#          $('#mock_stock_image_attachment_file')							// <input type="text"
 	#            .attr('value', $(this).attr('value'))
 	#      })
 	#    })
@@ -56,7 +56,7 @@ Cms::FormBuilder.class_eval do
 		method_file = (method.to_s + '_file').to_sym
 		_attachment = object.send(method)
 		result = cms_file_field(method_file.to_sym, aOptions)
-		
+
 		underscore_id = object_name
 		underscore_id += '_'+options[:index].to_s if options[:index]
 		underscore_id += '_'+method_file.to_s
@@ -78,7 +78,7 @@ Cms::FormBuilder.class_eval do
 				EOS
 			end
 		end
-				
+
 		thumbnail = if _attachment
 			"<img class=\"thumbnail\" src=\"#{BcmsTools::PageHelper.attachment_cropped_src(_attachment,64,64)}\" width=\"64\" height=\"64\"/>"
 		else
@@ -86,14 +86,14 @@ Cms::FormBuilder.class_eval do
 		end
 		result = result.sub('</label>','</label>'+thumbnail)
 		result = result.gsub(object_name+'_'+method_file.to_s,underscore_id)
-		result = StringUtils.split3(result,/<div class="fields file_fields.*?>/) {|h,m,t| XmlUtils.quick_join_att(m,'class','thumbnail_upload',' ') }  
+		result = StringUtils.split3(result,/<div class="fields file_fields.*?>/) {|h,m,t| XmlUtils.quick_join_att(m,'class','thumbnail_upload',' ') }
 		unless aOptions[:remove_check_box]==false || object.new_record?
 			checkbox = '<div style="display: block; float: right; width: auto; height: auto;">'+remove_check_box()+'</div>'
-			result = StringUtils.split3(result,/<\/div>\Z/){|h,m,t| 
+			result = StringUtils.split3(result,/<\/div>\Z/){|h,m,t|
 				checkbox+'<br clear="all" />'+m
 			}
 		end
-		result = StringUtils.split3(result,/<div.*?>/){|h,m,t| m+'<br clear="all" />'}		
+		result = StringUtils.split3(result,/<div.*?>/){|h,m,t| m+'<br clear="all" />'}
 		return result
 	end
 
@@ -104,7 +104,7 @@ Cms::FormBuilder.class_eval do
 	#		<%= image_form.cms_text_field :name, :label => "name (short)" %>
 	#		<%= image_form.cms_text_field :caption, :label => 'caption' %>
 	#	<% end %>
-	#<% end %>	
+	#<% end %>
 	def child_fields(aClass='child_fields', &block)
 		content = template.capture(&block)
 		template.concat("<div class=\"#{aClass}\">")
@@ -121,12 +121,12 @@ Cms::FormBuilder.class_eval do
 			label aField
 		end
 		template.concat("<div id=\"artist_#{aField}\" class=\"text_display\">#{object.send(aField.to_sym)}</div>")
-		
+
 		template.concat("<div class=\"instructions\">#{aOptions[:instructions]}</div>") if aOptions[:instructions]
 		template.concat("<br clear=\"all\" />") # Fixes issue with bad line wrapping
 		template.concat("</div>")
 	end
-	
+
 	def bcmstools_check_box(aField,aOptions={})
 		result = "<br clear=\"all\" />" # Fixes issue with bad line wrapping
 		result += '<div class="fields text_fields">'
@@ -137,7 +137,7 @@ Cms::FormBuilder.class_eval do
 		end
 		ins = aOptions.delete(:instructions)
 		result += check_box(aField, aOptions)
-		
+
 		result += "<div class=\"instructions\">#{ins}</div>" if ins
 		result += "<br clear=\"all\" />" # Fixes issue with bad line wrapping
 		result += "</div>"
